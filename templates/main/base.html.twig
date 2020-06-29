@@ -22,7 +22,11 @@
                 </li>
             </ul>
             <form class="form-inline">
-                <a href="{{ path('app_login') }}" class="btn btn-outline-success my-2 my-sm-0" type="submit">Вход</a>
+                {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                    <a href="{{ path('admin_home') }}" class="btn btn-outline-success my-2 my-sm-0" type="submit">Админпанель</a>
+                {% else %}
+                    <a href="{{ path('admin_home') }}" class="btn btn-outline-success my-2 my-sm-0" type="submit">Вход</a>
+                {% endif %}
             </form>
         </div>
     </nav>
@@ -37,7 +41,11 @@
                     crossorigin="anonymous"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.4.2/umd/popper.min.js">
             </script>
+            <script src="{{ asset('assets/framework/vue/vue.js') }}"></script>
             <script src="{{ asset('assets/framework/bootstrap-4.5.0-dist/js/bootstrap.min.js') }}"></script>
+            {% block addJs %}
+
+            {% endblock %}
         {% endblock %}
     </body>
 </html>

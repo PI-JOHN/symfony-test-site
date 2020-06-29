@@ -23,7 +23,7 @@ class AdminUserController extends AdminBaseController
         $users = $this->getDoctrine()->getRepository(User::class)->findAll();
 
         $forRender = parent::renderDefault();
-        $forRender['title'] = 'Пользователя';
+        $forRender['title'] = 'Пользователи';
         $forRender['users'] = $users;
         return $this->render('admin/user/index.html.twig', $forRender);
     }
