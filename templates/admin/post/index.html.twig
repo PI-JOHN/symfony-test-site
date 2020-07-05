@@ -49,7 +49,11 @@
                     <h2>Список постов</h2>
                     <ul>
                         {% for post_item in post %}
-                            <li>{{ post_item.title }}
+                            <li>
+                                <img src="{{ asset('uploads/post/') }}{{ post_item.image }}"
+                                     style="width: 100px"
+                                     alt="">
+                                {{ post_item.title }}
                                 <a href="{{ path('admin_post_update', {'id': post_item.id}) }}"
                                  class="btn-link" >
                                     Редактировать

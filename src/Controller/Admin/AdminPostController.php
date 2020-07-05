@@ -7,6 +7,9 @@ namespace App\Controller\Admin;
 use App\Entity\Category;
 use App\Entity\Post;
 use App\Form\PostType;
+use App\Repository\CategoryRepositoryInterface;
+use App\Repository\PostRepositoryInterface;
+use App\Service\FileManagerServiceInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,20 +17,24 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class AdminPostController extends AdminBaseController
 {
+    private $categoryRepository;
+    private $postRepository;
+
+    public function __construct(CategoryRepositoryInterface $categoryRepository, PostRepositoryInterface $postRepository)
+    {
+        $this->categoryRepository = $categoryRepository;
+        $this->postRepository = $postRepository;
+    }
+
     /**
      * @Route("/admin/post", name="admin_post")
      */
     public function index()
     {
-        $post = $this->getDoctrine()->getRepository(Post::class)
-            ->findAll();
-
-        $checkCategory = $this->getDoctrine()->getRepository(Category::class)
-            ->findAll();
         $forRender = parent::renderDefault();
         $forRender['title'] = 'Посты';
-        $forRender['post'] = $post;
-        $forRender['check_category'] = $checkCategory;
+        $forRender['post'] = $this->postRepository->getAllPost();
+        $forRender['check_category'] = $this->categoryRepository->getAllCategory();
         return $this->render('admin/post/index.html.twig', $forRender);
     }
 
@@ -38,16 +45,12 @@ class AdminPostController extends AdminBaseController
      */
     public function create(Request $request)
     {
-        $em = $this->getDoctrine()->getManager();
         $post = new Post();
         $form = $this->createForm(PostType::class, $post);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()){
-            $post->setCreateAtValue();
-            $post->setUpdateAtValue();
-            $post->setIsPublished();
-            $em->persist($post);
-            $em->flush();
+            $file = $form->get('image')->getData();
+            $this->postRepository->setCreatePost($post, $file);
             $this->addFlash('success', 'Пост добавлен');
             return $this->redirectToRoute('admin_post');
         }
@@ -65,21 +68,20 @@ class AdminPostController extends AdminBaseController
      */
     public function update(int $id, Request $request)
     {
-        $em = $this->getDoctrine()->getManager();
-        $post = $this->getDoctrine()->getRepository(Post::class)->find($id);
+        $post = $this->postRepository->getOnePost($id);
         $form = $this->createForm(PostType::class, $post);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()){
             if ($form->get('save')->isClicked()){
-                $post->setUpdateAtValue();
+                $file = $form->get('image')->getData();
+                $this->postRepository->setUpdatePost($post, $file);
                 $this->addFlash('success','Пост обновлен');
             }
 
             if($form->get('delete')->isClicked()){
-                $em->remove($post);
+                $this->postRepository->setDeletePost($post);
                 $this->addFlash('success','Пост удален');
             }
-            $em->flush();
             return $this->redirectToRoute('admin_post');
         }
 
